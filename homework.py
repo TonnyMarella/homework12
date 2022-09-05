@@ -3,12 +3,7 @@ from collections import UserDict
 from datetime import datetime, timedelta
 import re
 
-from simple_commands import simple
-from show_commands import show
-from phone_commands import phone_command
-
-
-# from save import save_adressbook
+from commands import phone, show, simple
 
 
 class Field:
@@ -40,17 +35,59 @@ class AddressBook(UserDict, Field):
             yield key, record
 
     def save_to_file(self):
-        with open('saved.txt', "wb") as file:
+        with open('contacts.txt', "wb") as file:
             pickle.dump(self.data, file)
 
     @staticmethod
     def read_from_file():
-        with open('saved.txt', "rb") as file:
+        with open('contacts.txt', "rb") as file:
             try:
                 content = pickle.load(file)
             except EOFError:
                 return None
             return content
+
+    def __find_phone(self, symbols_for_search):
+        """
+        Looks up contacts by phone
+        :param symbols_for_search:
+        :return: result
+        """
+        result = {}
+        for name, record in self.data.items():
+            phones = record.phones
+            found_phones = list(
+                filter(lambda phone_for_data:
+                       phone_for_data.value if symbols_for_search in phone_for_data.value else False, phones))
+
+            if found_phones:
+                result[name] = record
+                continue
+        return result
+
+    def __find_name(self, symbols_for_search):
+        """
+        Looks up contacts by name
+        :param symbols_for_search:
+        :return: result
+        """
+        result = {}
+        for name in self.data:
+            if symbols_for_search in name:
+                result[name] = self.data[name]
+        return result
+
+    def find_contacts(self, symbols_for_search):
+        """
+        Calls the method find_phone or find_name
+        :param symbols_for_search:
+        :return: result or string
+        """
+        if symbols_for_search[0] == "+" or symbols_for_search.isdigit():
+            result = self.__find_phone(symbols_for_search)
+        else:
+            result = self.__find_name(symbols_for_search)
+        return result if result else 'No contact with such symbols'
 
 
 class Name(Field):
@@ -59,13 +96,13 @@ class Name(Field):
 
 class Phone(Field):
     @Field.value.setter
-    def value(self, phone):
+    def value(self, phone_to_setter):
         """
         setter for phone
-        :param phone:
+        :param phone_to_setter:
         """
-        if re.match(r'^\+1?\d{9,20}$', phone):
-            self._value = phone
+        if re.match(r'^\+1?\d{9,20}$', phone_to_setter):
+            self._value = phone_to_setter
         else:
             print('Number must be minimum 9 digits maximum 20 and start with \'+\'')
 
@@ -113,9 +150,9 @@ class Record:
         Adds contact to adressbook
         :param new_phone:
         """
-        phone = Phone()
-        phone.value = new_phone
-        self.phones.append(phone)
+        instance_phone = Phone()
+        instance_phone.value = new_phone
+        self.phones.append(instance_phone)
 
     def change_phone(self, old_phone, new_phone):
         """
@@ -125,20 +162,20 @@ class Record:
         """
         current_phone = self.get_phone(old_phone)
         if current_phone:
-            phone = Phone()
-            phone.value = new_phone
-            phone_examination = self.phones.append(phone)
-            if phone_examination == phone:
+            instance_phone = Phone()
+            instance_phone.value = new_phone
+            phone_examination = self.phones.append(instance_phone)
+            if phone_examination == instance_phone:
                 self.phones.remove(current_phone)
         else:
             print('The phone number not exist')
 
-    def delete_phone(self, phone):
+    def delete_phone(self, phone_to_delete):
         """
         Deletes a number
-        :param phone:
+        :param phone_to_delete:
         """
-        current_phone = self.get_phone(phone)
+        current_phone = self.get_phone(phone_to_delete)
         if current_phone:
             self.phones.remove(current_phone)
         else:
@@ -150,8 +187,8 @@ class Record:
         :param new_phone:
         :return: phone or False
         """
-        for phone in self.phones:
-            if phone.value == new_phone:
+        for phone_from_data in self.phones:
+            if phone_from_data.value == new_phone:
                 return phone
         return False
 
@@ -161,37 +198,8 @@ def get_name_and_phone():
     To avoid duplication
     """
     name = input('Enter name:\n')
-    phone = input('Enter phone number: \n')
-    return name, phone
-
-
-def find_contacts(name_of_phone, adressbook):
-    """
-    Looks up contacts by name or number
-    :param name_of_phone:
-    :param adressbook:
-    :return: result or string
-    """
-    result = {}
-    if name_of_phone == '1':
-        name_to_find = input('Enter name:\n')
-
-        for name in adressbook:
-            if name_to_find in name:
-                result[name] = adressbook[name]
-
-    elif name_of_phone == '2':
-        phone_to_find = input('Enter phone:\n')
-
-        for name, record in adressbook.items():
-            phones = record.phones
-            s = list(filter(lambda phone: phone.value if phone_to_find in phone.value else False, phones))
-            if s:
-                result[name] = record
-                continue
-    else:
-        return 'Please enter a valid choice'
-    return result
+    input_phone = input('Enter phone number: \n')
+    return name, input_phone
 
 
 def main():
@@ -205,9 +213,9 @@ def main():
         command = input('Enter command:\n').lower()
         if command == '.':
             break
-        simple(command)
-        show(command, adressbook)
-        phone_command(command, adressbook, get_name_and_phone, Record)
+        simple.simple(command)
+        show.show(command, adressbook)
+        phone.phone_command(command, adressbook, get_name_and_phone, Record)
 
         if command == 'birthday':
             name = input('Enter name:\n')
@@ -215,8 +223,8 @@ def main():
                 record_change = adressbook.data[name]
                 print('Days to birthday:', record_change.days_to_birthday())
         elif command == 'find':
-            name_or_phone = input('What parameter would you like to search for?(1 - Name, 2 - Phone)\n')
-            print(find_contacts(name_or_phone, adressbook))
+            symbols_for_search = input('Enter the characters you want to search for:\n')
+            print(adressbook.find_contacts(symbols_for_search))
 
 
 if __name__ == '__main__':
