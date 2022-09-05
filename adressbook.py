@@ -215,7 +215,7 @@ def main():
             break
         commands.simple(command)
         commands.show(command, adressbook)
-        commands.phone_command(command, adressbook, get_name_and_phone, Record)
+        commands.phone_command(command, adressbook)
 
         if command == 'birthday':
             name = input('Enter name:\n')

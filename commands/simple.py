@@ -1,4 +1,4 @@
-def simple(command):
+def simple(command: str):
     if command in ("good bye", "close", "exit"):
         print("Good Bye!")
     elif command == 'hello':

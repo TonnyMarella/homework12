@@ -1,7 +1,8 @@
 from datetime import datetime
+from adressbook import AddressBook, get_name_and_phone, Record
 
 
-def phone_command(command, adressbook, get_name_and_phone, record):
+def phone_command(command: str, adressbook: AddressBook):
     if command.split()[0] == 'add':  # Add contact
         name, phone = get_name_and_phone()
         birthday = input('Enter birthday(day month, year) or skip(enter):\n')
@@ -13,7 +14,7 @@ def phone_command(command, adressbook, get_name_and_phone, record):
             print('Enter ONE phone number')
         else:
             if name and phone:
-                record_add = record(name.lower(), birthday if birthday != '' else None)
+                record_add = Record(name.lower(), birthday if birthday != '' else None)
                 record_add.add_contact(phone)
                 adressbook.add_record(record_add)
                 adressbook.save_to_file()

@@ -1,4 +1,7 @@
-def show(command, adressbook):
+from adressbook import AddressBook
+
+
+def show(command: str, adressbook: AddressBook):
     if command == 'show all':  # Show all contacts
         print(adressbook.data)
     elif command == 'show':  # Show one contact
