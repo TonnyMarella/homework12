@@ -3,7 +3,7 @@ from collections import UserDict
 from datetime import datetime, timedelta
 import re
 
-from commands import phone, show, simple
+import commands
 
 
 class Field:
@@ -189,7 +189,7 @@ class Record:
         """
         for phone_from_data in self.phones:
             if phone_from_data.value == new_phone:
-                return phone
+                return phone_from_data
         return False
 
 
@@ -213,9 +213,9 @@ def main():
         command = input('Enter command:\n').lower()
         if command == '.':
             break
-        simple.simple(command)
-        show.show(command, adressbook)
-        phone.phone_command(command, adressbook, get_name_and_phone, Record)
+        commands.simple(command)
+        commands.show(command, adressbook)
+        commands.phone_command(command, adressbook, get_name_and_phone, Record)
 
         if command == 'birthday':
             name = input('Enter name:\n')
