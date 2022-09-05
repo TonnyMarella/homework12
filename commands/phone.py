@@ -1,10 +1,9 @@
 from datetime import datetime
-from adressbook import AddressBook, get_name_and_phone
 
 
-def phone_command(command: str, adressbook: AddressBook, name_and_phone: get_name_and_phone, record):
+def phone_command(command, adressbook, get_name_and_phone, record):
     if command.split()[0] == 'add':  # Add contact
-        name, phone = name_and_phone()
+        name, phone = get_name_and_phone()
         birthday = input('Enter birthday(day month, year) or skip(enter):\n')
         try:
             birthday = datetime.strptime(birthday, "%d %B, %Y").date()
